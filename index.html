@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Трекер: подтягивания + брусья (4 недели)</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#151a21" />
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- Иконки можно добавить позже: -->
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+
+  <style>
+    :root {
+      --bg: #0f1216;
+      --panel: #151a21;
+      --muted: #9aa4b2;
+      --text: #eef2f7;
+      --accent: #6aa6ff;
+      --ok: #39d98a;
+      --warn: #ffd166;
+      --bad: #ff6b6b;
+      --chip: #1b222c;
+      --border: #2a3340;
+      --input: #0f1216;
+    }
+
+    .light {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --muted: #5c6672;
+      --text: #1e242b;
+      --accent: #2d6cdf;
+      --ok: #23ad6b;
+      --warn: #b8860b;
+      --bad: #cf3540;
+      --chip: #f1f5fb;
+      --border: #dfe7f3;
+      --input: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(0deg, var(--bg), var(--panel));
+      border-bottom: 1px solid var(--border)
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    h1 {
+      margin: 0 12px 0 0;
+      font-size: 20px
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--chip);
+      color: var(--muted);
+      display: inline-flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    .spacer {
+      flex: 1
+    }
+
+    button,
+    input[type="date"] {
+      height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--input);
+      color: var(--text)
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent)
+    }
+
+    button.ghost {
+      background: transparent
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 16px auto;
+      padding: 0 16px 24px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 16px
+    }
+
+    @media (max-width:900px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .12)
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .weekbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 8px 0
+    }
+
+    .wbtn {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--chip);
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .wbtn.active {
+      border-color: var(--accent);
+      color: var(--text)
+    }
+
+    .plan-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      margin: 8px 0;
+      background: rgba(0, 0, 0, .04)
+    }
+
+    .sets {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .set {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 8px
+    }
+
+    .tag {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--chip)
+    }
+
+    .set input {
+      width: 64px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      background: var(--input);
+      color: var(--text)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left
+    }
+
+    th {
+      background: var(--chip);
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px
+    }
+
+    .hidden {
+      display: none
+    }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+      background: var(--chip);
+      border: 1px solid var(--border);
+      border-radius: 12px
+    }
+
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--chip);
+      font-size: 12px
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap">
+      <div class="row">
+        <h1>Трекер подтягиваний + брусьев</h1>
+        <span id="todayChip" class="chip">Сегодня: —</span>
+        <span id="wkChip" class="chip">Неделя цикла: —</span>
+        <span id="dayChip" class="chip">День: —</span>
+        <div class="spacer"></div>
+        <label class="chip">Старт цикла: <input type="date" id="startDateInput"></label>
+        <button id="prevDay" class="ghost">◀</button>
+        <button id="nextDay" class="ghost">▶</button>
+        <button id="toggleTheme" class="ghost">🌓</button>
+        <button id="resetAll" class="ghost">♻ Сброс</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h2>Сегодняшний план <span id="planTitle" class="sub"></span></h2>
+        <div id="weekbar" class="weekbar"></div>
+        <div id="planBox"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <button id="saveBtn" class="primary">Сохранить выполнение</button>
+          <button id="completeBtn">Отметить как выполнено ✅</button>
+          <span id="saveStatus" class="sub"></span>
+        </div>
+        <p class="sub">Пн/Пт — подтягивания (тяжёлый/лестница), Вт/Чт — брусья (лёгкий/тяжёлый), Ср — подтягивания
+          (лёгкий), Сб/Вс — восстановление/отдых.</p>
+      </section>
+
+      <section class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2>История и прогресс</h2>
+          <div class="tabs">
+            <button id="tabHistory" class="primary">История</button>
+            <button id="tabChart">График</button>
+          </div>
+        </div>
+
+        <div id="historyView">
+          <table>
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>День</th>
+                <th>Неделя</th>
+                <th>Подтягивания</th>
+                <th>Брусья</th>
+                <th>Итог</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+
+        <div id="chartView" class="hidden">
+          <canvas id="chart" width="800" height="300"></canvas>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    /* ====== Утилиты даты: локальные, без UTC-сдвига ====== */
+    const fmtDateKey = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    };
+    const parseKey = (key) => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); };
+    const isoDay = (d) => { const js = d.getDay(); return js === 0 ? 7 : js; }; // Пн=1..Вс=7
+    const addDays = (d, n) => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); return x; };
+    const diffDays = (aKey, bKey) => Math.round((parseKey(bKey) - parseKey(aKey)) / (1000 * 60 * 60 * 24));
+
+    /* ====== Безопасный модуль (для отрицательных чисел) ====== */
+    const mod = (n, m) => ((n % m) + m) % m;
+
+    /* ====== Настройки хранения ====== */
+    const store = {
+      get settings() {
+        let s = JSON.parse(localStorage.getItem('pd_settings') || '{}');
+        if (!s.theme) s.theme = 'dark';
+        if (!s.startDate) s.startDate = nextMondayKey();
+        localStorage.setItem('pd_settings', JSON.stringify(s));
+        return s;
+      },
+      set settings(v) { localStorage.setItem('pd_settings', JSON.stringify(v)); },
+      get workouts() { return JSON.parse(localStorage.getItem('pd_workouts') || '{}'); },
+      set workouts(v) { localStorage.setItem('pd_workouts', JSON.stringify(v)); },
+    };
+    function nextMondayKey() {
+      const t = new Date(); const d = t.getDay(); // 0..6
+      const add = (d === 0 ? 1 : (8 - d)); // до ближайшего понедельника
+      return fmtDateKey(addDays(t, add === 8 ? 0 : add));
+    }
+
+    /* ====== Программа ====== */
+    const PROGRAM = {
+      1: {
+        name: "Пн — Подтягивания (тяжёлый)", blocks: [
+          { ex: "Подтягивания", type: "fixed", sets: [13, 12, 10, 8], note: "90% от макс., отдых 2–3 мин" },
+          { ex: "Планка", type: "time", sets: ["40с", "40с", "40с"], note: "" }
+        ]
+      },
+      2: {
+        name: "Вт — Брусья (лёгкий)", blocks: [
+          { ex: "Отжимания на брусьях", type: "range", sets: [[5, 6], [5, 6], [5, 6], [5, 6], [5, 6]], note: "50–60% от макс., медленно" },
+          { ex: "Растяжка", type: "note", note: "Грудь/плечи — 5 мин" }
+        ]
+      },
+      3: {
+        name: "Ср — Подтягивания (лёгкий)", blocks: [
+          { ex: "Подтягивания (разные хваты)", type: "range", sets: [[7, 8], [7, 8], [7, 8], [7, 8], [7, 8], [7, 8]], note: "Отдых ~90 сек" },
+          { ex: "Удержание в верхней точке", type: "time", sets: ["макс", "макс"], note: "" }
+        ]
+      },
+      4: {
+        name: "Чт — Брусья (тяжёлый)", blocks: [
+          { ex: "Отжимания на брусьях", type: "fixed", sets: [9, 8, 7, 6], note: "80–90% от макс., отдых 2 мин" },
+          { ex: "Планка", type: "time", sets: ["40с", "40с", "40с"], note: "" }
+        ]
+      },
+      5: {
+        name: "Пт — Подтягивания (лестница)", blocks: [
+          { ex: "Подтягивания «лестницей»", type: "ladder", scheme: [1, 2, 3, 4, 5, 4, 3, 2, 1], note: "Без отказа, отдых 30–60 сек" },
+          { ex: "Обратные подтягивания (негативы)", type: "fixed", sets: [6, 6], note: "Медленный спуск 4–5 сек" }
+        ]
+      },
+      6: { name: "Сб — Восстановление", blocks: [{ ex: "Активный отдых", type: "note", note: "Ходьба 30–60 мин, растяжка" }] },
+      7: { name: "Вс — Отдых", blocks: [{ ex: "Отдых", type: "note", note: "Полный отдых" }] },
+    };
+
+    /* ====== Состояние UI ====== */
+    const els = {
+      todayChip: document.getElementById('todayChip'),
+      wkChip: document.getElementById('wkChip'),
+      dayChip: document.getElementById('dayChip'),
+      startDate: document.getElementById('startDateInput'),
+      prevDay: document.getElementById('prevDay'),
+      nextDay: document.getElementById('nextDay'),
+      toggleTheme: document.getElementById('toggleTheme'),
+      resetAll: document.getElementById('resetAll'),
+      weekbar: document.getElementById('weekbar'),
+      planTitle: document.getElementById('planTitle'),
+      planBox: document.getElementById('planBox'),
+      saveBtn: document.getElementById('saveBtn'),
+      completeBtn: document.getElementById('completeBtn'),
+      saveStatus: document.getElementById('saveStatus'),
+      tabHistory: document.getElementById('tabHistory'),
+      tabChart: document.getElementById('tabChart'),
+      historyBody: document.getElementById('historyBody'),
+      historyView: document.getElementById('historyView'),
+      chartView: document.getElementById('chartView'),
+      chart: document.getElementById('chart')
+    };
+    let state = {
+      selectedKey: fmtDateKey(new Date()) // YYYY-MM-DD
+    };
+
+    /* ====== Тема ====== */
+    function applyTheme() {
+      const th = store.settings.theme;
+      document.body.classList.toggle('light', th === 'light');
+    }
+    els.toggleTheme.onclick = () => {
+      const s = store.settings; s.theme = s.theme === 'dark' ? 'light' : 'dark'; store.settings = s; applyTheme();
+    };
+
+    /* ====== Неделя цикла ====== */
+    function weekIndexFrom(startKey, currentKey) {
+      // может быть отрицательным, если дата до старта — это ок
+      const d = diffDays(startKey, currentKey); // b-a
+      return Math.floor(d / 7) + 1;
+    }
+    function weekOfCycle(weekIdx) {
+      // 1..4, безопасно для отрицательных weekIdx
+      return mod(weekIdx - 1, 4) + 1;
+    }
+
+    /* ====== План ====== */
+    function renderHeader() {
+      const d = parseKey(state.selectedKey);
+      const today = new Date();
+      els.todayChip.textContent = "Сегодня: " + d.toLocaleDateString();
+      const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+      els.dayChip.textContent = "День: " + dayNames[isoDay(d) - 1];
+
+      const wkIdx = weekIndexFrom(store.settings.startDate, state.selectedKey);
+      els.wkChip.textContent = "Неделя цикла: " + weekOfCycle(wkIdx);
+    }
+    function renderWeekbar() {
+      const d = parseKey(state.selectedKey);
+      const curIso = isoDay(d);
+      els.weekbar.innerHTML = "";
+      const labels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+      for (let i = 1; i <= 7; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'wbtn' + (i === curIso ? ' active' : '');
+        btn.textContent = labels[i - 1];
+        btn.onclick = () => {
+          // Переключаемся в рамках той же календарной недели (Пн..Вс)
+          const shift = i - curIso;
+          state.selectedKey = fmtDateKey(addDays(d, shift));
+          renderAll();
+        };
+        els.weekbar.appendChild(btn);
+      }
+    }
+    function getWorkout(key) { return store.workouts[key]; }
+    function setWorkout(key, payload) { const all = store.workouts; all[key] = payload; store.workouts = all; }
+
+    function renderPlan() {
+      const d = parseKey(state.selectedKey);
+      const cfg = PROGRAM[isoDay(d)];
+      els.planTitle.textContent = "· " + cfg.name;
+      els.planBox.innerHTML = "";
+
+      const stored = getWorkout(state.selectedKey);
+
+      cfg.blocks.forEach((blk, idx) => {
+        const row = document.createElement('div'); row.className = 'plan-row';
+        const left = document.createElement('div');
+        left.innerHTML = `<div><strong>${blk.ex}</strong></div><div class="sub">${blk.note || ""}</div>`;
+        const right = document.createElement('div'); right.className = 'sets';
+
+        if (blk.type === "fixed") {
+          blk.sets.forEach((rep, sIdx) => {
+            const s = document.createElement('div'); s.className = 'set';
+            s.innerHTML = `<span class="tag">${rep}x</span>`;
+            const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.step = '1';
+            const val = stored?.blocks?.[idx]?.sets?.[sIdx]; inp.value = (typeof val === 'number') ? val : '';
+            s.appendChild(inp); right.appendChild(s);
+          });
+        } else if (blk.type === "range") {
+          blk.sets.forEach((rng, sIdx) => {
+            const s = document.createElement('div'); s.className = 'set';
+            s.innerHTML = `<span class="tag">${rng[0]}–${rng[1]}x</span>`;
+            const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.step = '1';
+            const val = stored?.blocks?.[idx]?.sets?.[sIdx]; inp.value = (typeof val === 'number') ? val : '';
+            s.appendChild(inp); right.appendChild(s);
+          });
+        } else if (blk.type === "ladder") {
+          const s = document.createElement('div'); s.className = 'set';
+          s.innerHTML = `<span class="tag">${blk.scheme.join("–")}</span>`;
+          const inp = document.createElement('input'); inp.type = 'number'; inp.min = '0'; inp.step = '1'; inp.placeholder = 'итого';
+          const val = stored?.blocks?.[idx]?.total; inp.value = (typeof val === 'number') ? val : '';
+          s.appendChild(inp); right.appendChild(s);
+        } else if (blk.type === "time") {
+          blk.sets.forEach((t, sIdx) => {
+            const s = document.createElement('div'); s.className = 'set';
+            s.innerHTML = `<span class="tag">${t}</span>`;
+            const inp = document.createElement('input'); inp.type = 'text';
+            const val = stored?.blocks?.[idx]?.sets?.[sIdx]; inp.value = (typeof val === 'string') ? val : '';
+            s.appendChild(inp); right.appendChild(s);
+          });
+        }
+
+        row.appendChild(left); row.appendChild(right);
+        els.planBox.appendChild(row);
+      });
+
+      const status = document.createElement('div'); status.className = 'sub'; status.style.marginTop = '8px';
+      status.innerHTML = "Статус: " + (stored?.done ? "✅ выполнено" : "—");
+      els.planBox.appendChild(status);
+    }
+
+    /* ====== Сохранение ====== */
+    function collectAndSave(markDone = false) {
+      const dKey = state.selectedKey;
+      const day = isoDay(parseKey(dKey));
+      const cfg = PROGRAM[day];
+      const payload = {
+        date: dKey,
+        isoDay: day,
+        weekIndex: weekIndexFrom(store.settings.startDate, dKey),
+        blocks: [],
+        totals: { pullups: 0, dips: 0 },
+        done: markDone ? true : (getWorkout(dKey)?.done || false)
+      };
+
+      let idx = 0;
+      document.querySelectorAll('#planBox .plan-row').forEach(row => {
+        if (idx >= cfg.blocks.length) return;
+        const blk = cfg.blocks[idx++];
+        const inputs = row.querySelectorAll('input');
+        if (blk.type === 'ladder') {
+          const tot = parseInt(inputs[0]?.value || '0', 10); const val = isNaN(tot) ? 0 : tot;
+          payload.blocks.push({ type: 'ladder', total: val });
+          if (/подтяг/i.test(blk.ex)) payload.totals.pullups += val;
+          if (/брусь/i.test(blk.ex)) payload.totals.dips += val;
+        } else if (blk.type === 'fixed' || blk.type === 'range') {
+          const sets = []; inputs.forEach(inp => { const n = parseInt(inp.value || '0', 10); sets.push(isNaN(n) ? 0 : n); });
+          payload.blocks.push({ type: blk.type, sets });
+          const sum = sets.reduce((a, b) => a + b, 0);
+          if (/подтяг/i.test(blk.ex)) payload.totals.pullups += sum;
+          if (/брусь/i.test(blk.ex)) payload.totals.dips += sum;
+        } else if (blk.type === 'time') {
+          const sets = []; inputs.forEach(inp => sets.push(inp.value || '')); payload.blocks.push({ type: 'time', sets });
+        } else { payload.blocks.push({ type: 'note' }); }
+      });
+
+      setWorkout(dKey, payload);
+      els.saveStatus.textContent = "Сохранено • " + new Date().toLocaleTimeString();
+      renderHistory(); if (!els.chartView.classList.contains('hidden')) drawChart();
+      renderPlan();
+    }
+
+    /* ====== История и график ====== */
+    function renderHistory() {
+      const tbody = els.historyBody; tbody.innerHTML = '';
+      const entries = Object.values(store.workouts).sort((a, b) => a.date.localeCompare(b.date));
+      const dayNames = ["—", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+      entries.forEach(e => {
+        const tr = document.createElement('tr');
+        const pull = e.totals?.pullups ?? estimateTotals(e);
+        const dips = e.totals?.dips ?? 0; // старых записей нет; защитный код
+        tr.innerHTML = `
+      <td>${parseKey(e.date).toLocaleDateString()}</td>
+      <td>${dayNames[e.isoDay || isoDay(parseKey(e.date))]}</td>
+      <td>${weekOfCycle(e.weekIndex || 1)}</td>
+      <td>${pull}</td>
+      <td>${dips}</td>
+      <td>${e.done ? '<span class="pill">✅</span>' : '<span class="pill">—</span>'}</td>
+    `;
+        tbody.appendChild(tr);
+      });
+    }
+    function estimateTotals(e) {
+      let sum = 0; (e.blocks || []).forEach(b => {
+        if (b.type === 'ladder') sum += (b.total || 0);
+        if (b.type === 'fixed' || b.type === 'range') sum += (b.sets || []).reduce((a, b) => a + (+b || 0), 0);
+      });
+      return sum;
+    }
+
+    function drawChart() {
+      const ctx = els.chart.getContext('2d');
+      const W = els.chart.width, H = els.chart.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const entries = Object.values(store.workouts).sort((a, b) => a.date.localeCompare(b.date));
+      const labels = entries.map(e => e.date.slice(5));
+      const pull = entries.map(e => e.totals?.pullups ?? estimateTotals(e));
+      const dips = entries.map(e => e.totals?.dips ?? 0);
+      const all = pull.concat(dips);
+      const maxY = Math.max(10, ...all);
+      const padL = 40, padB = 28, padR = 12, padT = 10, plotW = W - padL - padR, plotH = H - padT - padB;
+      const border = getComputedStyle(document.body).getPropertyValue('--border').trim();
+      const muted = getComputedStyle(document.body).getPropertyValue('--muted').trim();
+      const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim();
+      const ok = getComputedStyle(document.body).getPropertyValue('--ok').trim();
+
+      // grid + y labels
+      ctx.strokeStyle = border; ctx.lineWidth = 1;
+      const steps = 5;
+      for (let i = 0; i <= steps; i++) {
+        const y = padT + plotH - (plotH * i / steps);
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        ctx.fillStyle = muted; ctx.font = "12px system-ui"; ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        ctx.fillText(String(Math.round(maxY * i / steps)), padL - 6, y);
+      }
+      // x labels
+      ctx.fillStyle = muted; ctx.textAlign = "center"; ctx.textBaseline = "top";
+      labels.forEach((lab, i) => {
+        const x = padL + (labels.length <= 1 ? plotW / 2 : (plotW * i / (labels.length - 1)));
+        ctx.fillText(lab, x, H - padB + 6);
+      });
+
+      function line(arr, color) {
+        ctx.beginPath();
+        arr.forEach((v, i) => {
+          const x = padL + (labels.length <= 1 ? plotW / 2 : (plotW * i / (labels.length - 1)));
+          const y = padT + plotH - (plotH * v / maxY);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = color;
+        arr.forEach((v, i) => {
+          const x = padL + (labels.length <= 1 ? plotW / 2 : (plotW * i / (labels.length - 1)));
+          const y = padT + plotH - (plotH * v / maxY);
+          ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+      line(pull, accent); line(dips, ok);
+    }
+
+    /* ====== Навигация ====== */
+    els.prevDay.onclick = () => { state.selectedKey = fmtDateKey(addDays(parseKey(state.selectedKey), -1)); renderAll(); };
+    els.nextDay.onclick = () => { state.selectedKey = fmtDateKey(addDays(parseKey(state.selectedKey), 1)); renderAll(); };
+    els.saveBtn.onclick = () => collectAndSave(false);
+    els.completeBtn.onclick = () => collectAndSave(true);
+    els.startDate.onchange = () => { const s = store.settings; s.startDate = els.startDate.value || nextMondayKey(); store.settings = s; renderAll(); };
+    els.resetAll.onclick = () => {
+      if (confirm('Удалить все сохранения и вернуться к настройкам по умолчанию?')) {
+        localStorage.removeItem('pd_workouts');
+        const s = store.settings; s.startDate = nextMondayKey(); store.settings = s;
+        els.startDate.value = s.startDate; renderAll();
+      }
+    };
+
+    /* ====== Вкладки ====== */
+    document.getElementById('tabHistory').onclick = () => {
+      els.historyView.classList.remove('hidden'); els.chartView.classList.add('hidden');
+      document.getElementById('tabHistory').classList.add('primary');
+      document.getElementById('tabChart').classList.remove('primary');
+    };
+    document.getElementById('tabChart').onclick = () => {
+      els.historyView.classList.add('hidden'); els.chartView.classList.remove('hidden');
+      document.getElementById('tabChart').classList.add('primary');
+      document.getElementById('tabHistory').classList.remove('primary');
+      drawChart();
+    };
+
+    /* ====== Рендер ====== */
+    function renderAll() {
+      applyTheme();
+      els.startDate.value = store.settings.startDate;
+      renderHeader();
+      renderWeekbar();
+      renderPlan();
+      renderHistory();
+      if (!els.chartView.classList.contains('hidden')) drawChart();
+    }
+
+    /* ====== init ====== */
+    (function () {
+      applyTheme();
+      state.selectedKey = fmtDateKey(new Date());
+      renderAll();
+
+      // PWA: регистрация SW
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
+      }
+    })();
+  </script>
+</body>
+
+</html>
