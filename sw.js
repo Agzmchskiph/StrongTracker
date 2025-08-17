@@ -1,41 +1,43 @@
-const CACHE_NAME = 'pd-tracker-v2'
+const CACHE_NAME = 'tb-tracker-v1'
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './sw.js',
-  // иконки (если есть в проекте)
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icons/192.png', './icons/512.png'
 ]
 
-// install: кладём офлайн-ассеты
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)))
-  self.skipWaiting()
-})
-
-// activate: чистим старые версии
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))))
-  self.clients.claim()
-})
-
-// fetch: сеть с подменой кэшем при офлайне
-self.addEventListener('fetch', e => {
-  const req = e.request
-
-  // Кэшируем только запросы к нашему origin
-  const url = new URL(req.url)
-  if (url.origin !== location.origin) return // пропускаем сторонние
-
-  e.respondWith(
-    fetch(req)
-      .then(res => {
-        const clone = res.clone()
-        caches.open(CACHE_NAME).then(cache => cache.put(req, clone))
-        return res
-      })
-      .catch(() => caches.match(req)),
+  e.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME)
+      await cache.addAll(ASSETS)
+      self.skipWaiting()
+    })(),
   )
 })
+
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    (async () => {
+      const keys = await caches.keys()
+      await Promise.all(keys.map(k => (k === CACHE_NAME ? null : caches.delete(k))))
+      self.clients.claim()
+    })(),
+  )
+})
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    (async () => {
+      const cached = await caches.match(e.request)
+      if (cached) return cached
+      try {
+        return await fetch(e.request)
+      } catch {
+        if (e.request.mode === 'navigate') return caches.match('./index.html')
+        return new Response('Offline', { status: 503 })
+      }
+    })(),
+  )
+})
+
